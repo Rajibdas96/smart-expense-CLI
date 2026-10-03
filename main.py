@@ -1,5 +1,6 @@
 from datetime import datetime
 import json
+import os
 
 
 
@@ -39,6 +40,7 @@ def main_menu():
 
 
 def add_expense():
+    print("-----------------------------")
     print("ADD EXPENSE")
     print("-----------------------------")
     while True:
@@ -88,16 +90,24 @@ def add_expense():
         
     expense_description = input("Enter the expense description: ")
     now = datetime.now()
+    if os.path.exists("user_storage.json") and os.path.getsize("user_storage.json") > 0:
+        with open("user_storage.json", "r") as f:
+            try:
+                transactions = json.load(f)
+            except json.JSONDecodeError:
+                transactions = []
+    else:
+        transactions = []
     transaction = {
-        "id": generate_transaction_id(),
+        "id": generate_transaction_id(transactions),
         "amount": expense_amount,
         "category": expense_category,
         "description": expense_description,
-        "Date Time" : now.strftime("%Y-%m-%d %H:%M"),
+        "Date Time" : now.strftime("%Y-%m-%d %H:%M")
     }
+    transactions.append(transaction)
     with open("user_storage.json", "w") as f:
         json.dump(transactions, f, indent=4)
-    transactions.append(transaction)
     print("EXPENSE DETAILED")
     print(f"Amount: {expense_amount}\nCategory: {expense_category}\nDescription: {expense_description}\nDate Time: {transaction['Date Time']}")
     print("-----------------------------")
@@ -105,15 +115,24 @@ def add_expense():
     print("-----------------------------")
 
 
-def generate_transaction_id():
-    if not transactions:
+def generate_transaction_id(transactions_list):
+    if not transactions_list:
         return 1
-    highest_id = max(transaction["id"] for transaction in transactions)
+    highest_id = max(transaction["id"] for transaction in transactions_list)
     return highest_id + 1
 
 def view_expense():
+    print("-----------------------------")
     print("VIEW EXPENSE")
     print("-----------------------------")
+    if os.path.exists("user_storage.json") and os.path.getsize("user_storage.json") > 0:
+        with open("user_storage.json", "r") as f:
+            try:
+                transactions = json.load(f)
+            except json.JSONDecodeError:
+                transactions = []
+    else:
+        transactions = []
     if len(transactions) == 0:
         print("No expense found")
     else:
@@ -126,13 +145,35 @@ def view_expense():
     print("-----------------------------")
 
 def total_expense():
-    print("TOTAL EXPENSE")
-    print ("-----------------------------")
-    total = sum(t['amount'] for t in transactions)
-    print(f"Total Expense: {total}")
     print("-----------------------------")
+    print("TOTAL EXPENSE")
+    print("-----------------------------")
+    if os.path.exists("user_storage.json") and os.path.getsize("user_storage.json") > 0:
+        with open("user_storage.json", "r") as f:
+            try:
+                transactions = json.load(f)
+            except json.JSONDecodeError:
+                transactions = []
+    else:
+        transactions = []
+
+    if not transactions:
+        print("No expense found")
+    else:
+        total = sum(t['amount'] for t in transactions)
+        print(f"Total Expense: {total}")
+    print("-----------------------------")
+
 def search_filter():
+    print("-----------------------------")
     print("SEARCH/FILTER")
+    print("-----------------------------")
+    if os.path.exists("user_storage.json") and os.path.getsize("user_storage.json") > 0:
+        with open("user_storage.json", "r") as f:
+            try:
+                transactions = json.load(f)
+            except json.JSONDecodeError:
+                transactions = []
     valid_categories = ["FOOD", "TRANSPORTATION", "ENTERTAINMENT", "SHOPPING", "BILLS", "HEALTHCARE", "OTHER"]
     filter_by = input("Filter by: ").strip().upper()
     if filter_by not in valid_categories:
@@ -141,6 +182,7 @@ def search_filter():
         return
     filtered_transactions = [t for t in transactions if t['category'] == filter_by]
 
+    print("-----------------------------")
     print("FILTERED TRANSACTIONS")
     print("-----------------------------")
     for i, transaction in enumerate(filtered_transactions):
@@ -152,8 +194,15 @@ def search_filter():
     print("-----------------------------")
 
 def delete_expense():
+    print("-----------------------------")
     print("DELETE EXPENSE")
     print("-----------------------------")
+    if os.path.exists("user_storage.json") and os.path.getsize("user_storage.json") > 0:
+        with open("user_storage.json", "r") as f:
+            try:
+                transactions = json.load(f)
+            except json.JSONDecodeError:
+                transactions = []
     transaction_id = input("Enter the transaction ID to delete: ")
     for transaction in transactions:
         if transaction['id'] == int(transaction_id):
@@ -169,11 +218,26 @@ def delete_expense():
     print("-----------------------------")
     
 def edit_expense():
+    print("-----------------------------")
     print("EDIT EXPENSE")
     print("-----------------------------")
     transaction_id = input("Enter the transaction ID to edit: ")
+    if os.path.exists("user_storage.json") and os.path.getsize("user_storage.json") > 0:
+        with open("user_storage.json", "r") as f:
+            try:
+                transactions = json.load(f)
+            except json.JSONDecodeError:
+                transactions = []
+    try:
+        transaction_id = int(transaction_id)
+    except ValueError:
+        print("Invalid transaction ID. Please enter a valid number.")
+        print("-----------------------------")
+        return
+    transaction_found = False
     for transaction in transactions:
         if transaction['id'] == int(transaction_id):
+            transaction_found = True
             print("Enter new details (Leave blank to keep current value)")
             print(f"Current Amount: {transaction['amount']}")
             new_amount = input(f"New Amount: ")
@@ -187,12 +251,15 @@ def edit_expense():
                 transaction['category'] = new_category
             if new_description:
                 transaction['description'] = new_description
-            print("Transaction updated successfully.")
-            print("-----------------------------")
-            return
+            break
+    if not transaction_found:
         print("No transaction found with the given ID.")
         print("-----------------------------")
-        
+    with open("user_storage.json", "w") as f:
+        json.dump(transactions, f, indent=4)
+
+    print("Transaction updated successfully.")
+    print("-----------------------------")
 
 if __name__ == "__main__":
     main_menu()
