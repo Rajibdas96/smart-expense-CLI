@@ -1,0 +1,16 @@
+[
+    {
+        "id": 3,
+        "amount": 5000.0,
+        "category": "FOOD",
+        "description": "dinner",
+        "Date Time": "2026-10-05 21:05"
+    },
+    {
+        "id": 4,
+        "amount": 234.0,
+        "category": "FOOD",
+        "description": "lunch",
+        "Date Time": "2026-10-05 21:28"
+    }
+]

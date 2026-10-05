@@ -1,0 +1,4 @@
+*ccc.txt
+.venv/
+__pycache__
+user_storage.json

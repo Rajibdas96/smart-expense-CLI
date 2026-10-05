@@ -6,10 +6,27 @@ import os
 
 transactions = []
 
+def generate_transaction_id():
+    if os.path.exists("user_storage.json")and os.path.getsize("user_storage.json") > 0:
+        with open("user_storage.json", "r") as f:
+            try:
+                transactions = json.load(f)
+            except json.JSONDecodeError:
+                return 1
+    else:
+        return 1
+
+def clean_and_reindex(transactions_list):
+    for index, transaction in enumerate(transactions_list):
+        transaction['id'] = index + 1
+    return transactions_list
+
 
 def main_menu():
     while True:
+        print("-----------------------------")
         print("SMART EXPENSE TRACKER")
+        print("-----------------------------")
         print("1.ADD EXPENSE")
         print("2.VIEW EXPENSE")
         print("3.TOTAL EXPENSE")
@@ -33,7 +50,10 @@ def main_menu():
         elif choice == "6":
             edit_expense()
         elif choice == "7":
+            print("-----------------------------")
             print("Exiting the program....")
+            print("Thank you for using the Smart Expense Tracker. Goodbye!")
+            print("-----------------------------")
             break
         else:
             print("Invalid Number...Please Try Again.")
@@ -108,6 +128,9 @@ def add_expense():
     transactions.append(transaction)
     with open("user_storage.json", "w") as f:
         json.dump(transactions, f, indent=4)
+        transactions = clean_and_reindex(transactions)
+        with open("user_storage.json", "w") as f:
+            json.dump(transactions, f, indent=4)
     print("EXPENSE DETAILED")
     print(f"Amount: {expense_amount}\nCategory: {expense_category}\nDescription: {expense_description}\nDate Time: {transaction['Date Time']}")
     print("-----------------------------")
@@ -137,7 +160,7 @@ def view_expense():
         print("No expense found")
     else:
         for i, transaction in enumerate(transactions):
-            print(f"Transaction: {i+1}")
+            print(f"Transaction: {transaction['id']}")
             print(f"Amount: {transaction['amount']}")
             print(f"Category: {transaction['category']}")
             print(f"Description: {transaction['description']}")
@@ -160,8 +183,22 @@ def total_expense():
     if not transactions:
         print("No expense found")
     else:
+        Food = sum(t['amount'] for t in transactions if t['category'] == 'FOOD')
+        print(f"Total Expense for FOOD: {Food} RS.")
+        Transportation = sum(t['amount'] for t in transactions if t['category'] == 'TRANSPORTATION')
+        print(f"Total Expense for TRANSPORTATION: {Transportation} RS.")
+        Entertainment = sum(t['amount'] for t in transactions if t['category'] == 'ENTERTAINMENT')
+        print(f"Total Expense for ENTERTAINMENT: {Entertainment} RS.")
+        Shopping = sum(t['amount'] for t in transactions if t['category'] == 'SHOPPING')
+        print(f"Total Expense for SHOPPING: {Shopping} RS.")
+        Bills = sum(t['amount'] for t in transactions if t['category'] == 'BILLS')
+        print(f"Total Expense for BILLS: {Bills} RS.")
+        Healthcare = sum(t['amount'] for t in transactions if t['category'] == 'HEALTHCARE')
+        print(f"Total Expense for HEALTHCARE: {Healthcare} RS.")
+        Other = sum(t['amount'] for t in transactions if t['category'] == 'OTHER')
+        print(f"Total Expense for OTHER: {Other} RS.")
         total = sum(t['amount'] for t in transactions)
-        print(f"Total Expense: {total}")
+        print(f"Total Expense: {total} RS.")
     print("-----------------------------")
 
 def search_filter():
@@ -186,7 +223,7 @@ def search_filter():
     print("FILTERED TRANSACTIONS")
     print("-----------------------------")
     for i, transaction in enumerate(filtered_transactions):
-        print(f"Transaction: {i+1}")
+        print(f"Transaction: {transaction['id']}")
         print(f"Amount: {transaction['amount']}")
         print(f"Category: {transaction['category']}")
         print(f"Description: {transaction['description']}")
@@ -203,17 +240,25 @@ def delete_expense():
                 transactions = json.load(f)
             except json.JSONDecodeError:
                 transactions = []
+    else:
+        transactions = []
     transaction_id = input("Enter the transaction ID to delete: ")
     for transaction in transactions:
         if transaction['id'] == int(transaction_id):
-            print("Are you sure you want to delete this transaction? (y/n)")
+            print(f"Are you sure you want to delete this transaction {transaction['id']}? (y/n)")
             if input().lower() == 'y':
                 transactions.remove(transaction)
                 with open("user_storage.json", "w") as f:
                     json.dump(transactions, f, indent=4)
+                    transactions = clean_and_reindex(transactions)
+                    with open("user_storage.json", "w") as f:
+                        json.dump(transactions, f, indent=4)
                 print("Transaction deleted successfully.")
                 print("-----------------------------")
             return
+    update_transactions = [t for t in transactions if t['id'] != int(transaction_id)]
+    with open("user_storage.json", "w") as f:
+        json.dump(update_transactions, f, indent=4)
     print("No transaction found with the given ID.")
     print("-----------------------------")
     
