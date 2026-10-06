@@ -1,7 +1,6 @@
 *ccc.txt
 .venv/
-__pycache__
-user_storage.json
+__pycache__/
 build/
 dist/
-main.spec
+*.egg-info/
